@@ -32,7 +32,9 @@ Commands:
   update            [issueId]             - Update a linear issue                              
   comment                                 - Manage issue comments                              
   attach            <issueId> <filepath>  - Attach a file to an issue                          
-  relation                                - Manage issue relations (dependencies)
+  link              <urlOrIssueId> [url]  - Link a URL to an issue                             
+  relation                                - Manage issue relations (dependencies)              
+  agent-session                           - Manage agent sessions for an issue
 ```
 
 ## Subcommands
@@ -67,23 +69,27 @@ Description:
 
 Options:
 
-  -h, --help                        - Show this help.                                                                                                              
-  -w, --workspace      <slug>       - Target workspace (uses credentials)                                                                                          
-  -s, --state          <state>      - Filter by issue state (can be repeated for multiple states)           (Default: [ "unstarted" ], Values: "triage", "backlog",
-                                                                                                            "unstarted", "started", "completed", "canceled")       
-  --all-states                      - Show issues from all states                                                                                                  
-  --assignee           <assignee>   - Filter by assignee (username)                                                                                                
-  -A, --all-assignees               - Show issues for all assignees                                                                                                
-  -U, --unassigned                  - Show only unassigned issues                                                                                                  
-  --sort               <sort>       - Sort order (can also be set via LINEAR_ISSUE_SORT)                    (Values: "manual", "priority")                         
-  --team               <team>       - Team to list issues for (if not your default team)                                                                           
-  --project            <project>    - Filter by project name                                                                                                       
-  --cycle              <cycle>      - Filter by cycle name, number, or 'active'                                                                                    
-  --milestone          <milestone>  - Filter by project milestone name (requires --project)                                                                        
-  --limit              <limit>      - Maximum number of issues to fetch (default: 50, use 0 for unlimited)  (Default: 50)                                          
-  -w, --web                         - Open in web browser                                                                                                          
-  -a, --app                         - Open in Linear.app                                                                                                           
-  --no-pager                        - Disable automatic paging for long output
+  -h, --help                           - Show this help.                                                                                                                       
+  -w, --workspace      <slug>          - Target workspace (uses credentials)                                                                                                   
+  -s, --state          <state>         - Filter by issue state (can be repeated for multiple states)                    (Default: [ "unstarted" ], Values: "triage", "backlog",
+                                                                                                                        "unstarted", "started", "completed", "canceled")       
+  --all-states                         - Show issues from all states                                                                                                           
+  --assignee           <assignee>      - Filter by assignee (username)                                                                                                         
+  -A, --all-assignees                  - Show issues for all assignees                                                                                                         
+  -U, --unassigned                     - Show only unassigned issues                                                                                                           
+  --sort               <sort>          - Sort order (can also be set via LINEAR_ISSUE_SORT)                             (Values: "manual", "priority")                         
+  --team               <team>          - Team to list issues for (if not your default team)                                                                                    
+  --project            <project>       - Filter by project name                                                                                                                
+  --project-label      <projectLabel>  - Filter by project label name (shows issues from all projects with this label)                                                         
+  --cycle              <cycle>         - Filter by cycle name, number, or 'active'                                                                                             
+  --milestone          <milestone>     - Filter by project milestone name (requires --project)                                                                                 
+  -l, --label          <label>         - Filter by label name (can be repeated for multiple labels)                                                                            
+  --limit              <limit>         - Maximum number of issues to fetch (default: 50, use 0 for unlimited)           (Default: 50)                                          
+  --created-after      <date>          - Filter issues created after this date (ISO 8601 or YYYY-MM-DD)                                                                        
+  --updated-after      <date>          - Filter issues updated after this date (ISO 8601 or YYYY-MM-DD)                                                                        
+  -w, --web                            - Open in web browser                                                                                                                   
+  -a, --app                            - Open in Linear.app                                                                                                                    
+  --no-pager                           - Disable automatic paging for long output
 ```
 
 ### title
@@ -419,6 +425,30 @@ Options:
   -c, --comment    <body>   - Add a comment body linked to the attachment
 ```
 
+### link
+
+> Link a URL to an issue
+
+```
+Usage:   linear issue link <urlOrIssueId> [url]
+
+Description:
+
+  Link a URL to an issue
+
+Options:
+
+  -h, --help                - Show this help.                      
+  -w, --workspace  <slug>   - Target workspace (uses credentials)  
+  -t, --title      <title>  - Custom title for the link            
+
+Examples:
+
+  Link a URL to issue detected from branch linear issue link https://github.com/org/repo/pull/123            
+  Link a URL to a specific issue           linear issue link ENG-123 https://github.com/org/repo/pull/123    
+  Link with a custom title                 linear issue link ENG-123 https://example.com --title "Design doc"
+```
+
 ### relation
 
 > Manage issue relations (dependencies)
@@ -494,4 +524,62 @@ Options:
 
   -h, --help               - Show this help.                      
   -w, --workspace  <slug>  - Target workspace (uses credentials)
+```
+
+### agent-session
+
+> Manage agent sessions for an issue
+
+```
+Usage:   linear issue agent-session
+
+Description:
+
+  Manage agent sessions for an issue
+
+Options:
+
+  -h, --help               - Show this help.                      
+  -w, --workspace  <slug>  - Target workspace (uses credentials)  
+
+Commands:
+
+  list     [issueId]    - List agent sessions for an issue
+  view, v  <sessionId>  - View agent session details
+```
+
+#### agent-session subcommands
+
+##### list
+
+```
+Usage:   linear issue agent-session list [issueId]
+
+Description:
+
+  List agent sessions for an issue
+
+Options:
+
+  -h, --help                 - Show this help.                                                                                
+  -w, --workspace  <slug>    - Target workspace (uses credentials)                                                            
+  -j, --json                 - Output as JSON                                                                                 
+  --status         <status>  - Filter by session status             (Values: "pending", "active", "complete", "awaitingInput",
+                                                                    "error", "stale")
+```
+
+##### view
+
+```
+Usage:   linear issue agent-session view <sessionId>
+
+Description:
+
+  View agent session details
+
+Options:
+
+  -h, --help               - Show this help.                      
+  -w, --workspace  <slug>  - Target workspace (uses credentials)  
+  -j, --json               - Output as JSON
 ```

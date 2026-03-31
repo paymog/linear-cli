@@ -83,6 +83,10 @@ export const listCommand = new Command()
     "Filter by project name",
   )
   .option(
+    "--project-label <projectLabel:string>",
+    "Filter by project label name (shows issues from all projects with this label)",
+  )
+  .option(
     "--cycle <cycle:string>",
     "Filter by cycle name, number, or 'active'",
   )
@@ -91,11 +95,24 @@ export const listCommand = new Command()
     "Filter by project milestone name (requires --project)",
   )
   .option(
+    "-l, --label <label:string>",
+    "Filter by label name (can be repeated for multiple labels)",
+    { collect: true },
+  )
+  .option(
     "--limit <limit:number>",
     "Maximum number of issues to fetch (default: 50, use 0 for unlimited)",
     {
       default: 50,
     },
+  )
+  .option(
+    "--created-after <date:string>",
+    "Filter issues created after this date (ISO 8601 or YYYY-MM-DD)",
+  )
+  .option(
+    "--updated-after <date:string>",
+    "Filter issues updated after this date (ISO 8601 or YYYY-MM-DD)",
   )
   .option("-w, --web", "Open in web browser")
   .option("-a, --app", "Open in Linear.app")
@@ -113,10 +130,14 @@ export const listCommand = new Command()
         allStates,
         team,
         project,
+        projectLabel,
         cycle,
         milestone,
+        label: labels,
         limit,
         pager,
+        createdAfter,
+        updatedAfter,
       },
     ) => {
       const usePager = pager !== false
@@ -163,6 +184,16 @@ export const listCommand = new Command()
           )
         }
 
+        if (project != null && projectLabel != null) {
+          throw new ValidationError(
+            "Cannot use --project and --project-label together",
+            {
+              suggestion:
+                "Use --project to filter by a single project, or --project-label to filter by all projects with a given label.",
+            },
+          )
+        }
+
         let projectId: string | undefined
         if (project != null) {
           projectId = await getProjectIdByName(project)
@@ -193,6 +224,15 @@ export const listCommand = new Command()
 
         let milestoneId: string | undefined
         if (milestone != null) {
+          if (projectLabel != null) {
+            throw new ValidationError(
+              "--milestone cannot be used with --project-label",
+              {
+                suggestion:
+                  "Use --project to specify a single project when filtering by milestone.",
+              },
+            )
+          }
           if (projectId == null) {
             throw new ValidationError(
               "--milestone requires --project to be set",
@@ -204,6 +244,10 @@ export const listCommand = new Command()
           }
           milestoneId = await getMilestoneIdByName(milestone, projectId)
         }
+
+        const labelNames = labels && labels.length > 0
+          ? labels.flat()
+          : undefined
 
         const { Spinner } = await import("@std/cli/unstable-spinner")
         const showSpinner = shouldShowSpinner()
@@ -221,6 +265,10 @@ export const listCommand = new Command()
           sort,
           cycleId,
           milestoneId,
+          projectLabel,
+          labelNames,
+          createdAfter,
+          updatedAfter,
         )
         spinner?.stop()
         const issues = result.issues?.nodes || []
